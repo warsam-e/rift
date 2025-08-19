@@ -1,0 +1,16 @@
+{
+	"entryPoints": ["lib/index.ts"],
+	"out": "docs",
+	"plugin": ["typedoc-github-theme"],
+	"excludeExternals": true,
+	"externalSymbolLinkMappings": {
+		"@types/pg": {
+			"*": "https://node-postgres.com/"
+		}
+	},
+	"navigationLinks": {
+		"GitHub": "https://github.com/warsam-e/rift",
+		"My Site": "https://warsame.me"
+	},
+	"sort": ["documents-first", "kind"]
+}
