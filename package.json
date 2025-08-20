@@ -1,7 +1,7 @@
 {
 	"name": "@warsam-e/rift",
 	"description": "A lightweight postgres library for TypeScript",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"main": "./dist/index.js",
 	"module": "./dist/index.js",
 	"types": "./dist/index.d.ts",
@@ -18,14 +18,12 @@
 	],
 	"scripts": {
 		"build:lib": "tsdown",
-		"build:types": "dts-bundle-generator -o ./dist/index.d.ts --no-check ./lib/index.ts",
 		"build:docs": "typedoc --options typedoc.json",
-		"build": "bun build:lib && bun build:types && bun build:docs"
+		"build": "bun build:lib && bun build:docs"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.2.0",
 		"@types/bun": "1.2.20",
-		"dts-bundle-generator": "9.5.1",
 		"tsdown": "0.14.1",
 		"typedoc-github-theme": "0.3.0",
 		"typescript": "5.9.2"
