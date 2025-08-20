@@ -1,4 +1,4 @@
-import pg from 'pg';
+import pg, { type PoolClient } from 'pg';
 import { RiftError, type RiftConfig, type RiftObjectAny } from './types';
 declare module 'pg' {
 	interface ClientBase {
@@ -11,7 +11,7 @@ pg.Client.prototype[Symbol.dispose] = function () {
 };
 
 export let pool: pg.Pool;
-export type { PoolClient } from 'pg';
+export type { PoolClient };
 
 export async function init_pool(conf: RiftConfig) {
 	if (pool) return;
@@ -176,4 +176,4 @@ export async function remove<T extends RiftObjectAny>(
 	await query(conn, `delete from ${table} where ${keys.map((k, i) => `${k} = $${i + 1}`).join(' and ')}`, values);
 }
 
-export { RiftConfig, RiftConfigAuth, RiftError, RiftObjectAny } from './types';
+export * from './types';

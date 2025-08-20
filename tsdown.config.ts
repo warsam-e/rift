@@ -1,9 +1,7 @@
 import { defineConfig } from 'tsdown';
 
 export default defineConfig({
-	dts: {
-		sourcemap: true,
-	},
+	dts: false,
 	minify: true,
 	entry: ['./lib/index.ts'],
 	sourcemap: true,
