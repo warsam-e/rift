@@ -86,28 +86,36 @@ export async function query<T extends RiftObjectAny, V = unknown>(
 export async function insert<T extends RiftObjectAny, V extends RiftObjectAny>(
 	conn: pg.PoolClient,
 	table: string,
-	data: T,
+	data: T[],
 	conflict?: Array<keyof T>,
-): Promise<V> {
-	const keys = Object.keys(data);
-	const values = Object.values(data);
-	if (conflict?.length) values.push(...Object.keys(data).map((k) => data[k]));
+): Promise<V[]> {
+	if (!data.length) return [];
 
-	const res = await query<V>(
-		conn,
-		`insert into ${table} (${keys.join(', ')}) values (${keys.map((_, i) => `$${i + 1}`).join(', ')}) ${
-			conflict?.length
-				? `on conflict (${conflict.join(', ')}) do update set ${Object.keys(data)
-						.map((k, i) => `${k} = $${i + 1 + keys.length}`)
-						.join(', ')}`
-				: ''
-		} returning *`,
-		values,
-	);
+	const keys = Object.keys(data[0]);
+	const values: Array<unknown> = [];
+	const valuePlaceholders: Array<string> = [];
 
-	if (!res[0]) throw new RiftError('No result');
+	for (let i = 0; i < data.length; i++) {
+		const row = data[i];
+		const rowValues = keys.map((key) => row[key]);
+		values.push(...rowValues);
+		const placeholders = rowValues.map((_, i) => `$${i * keys.length + i + 1}`).join(', ');
+		valuePlaceholders.push(`(${placeholders})`);
+	}
 
-	return res[0];
+	const updateClause = conflict?.length
+		? `ON CONFLICT (${conflict.join(', ')}) DO UPDATE SET ${keys.map((k) => `${k} = EXCLUDED.${k}`).join(', ')}`
+		: '';
+
+	const queryText = `
+    INSERT INTO ${table} (${keys.join(', ')})
+    VALUES ${valuePlaceholders.join(', ')}
+    ${updateClause}
+    RETURNING *;
+  `;
+
+	const res = await query<V>(conn, queryText, values);
+	return res;
 }
 
 /**
