@@ -95,11 +95,11 @@ export async function insert<T extends RiftObjectAny, V extends RiftObjectAny>(
 	const values: Array<unknown> = [];
 	const valuePlaceholders: Array<string> = [];
 
-	for (let i = 0; i < data.length; i++) {
-		const row = data[i];
+	for (let rowIndex = 0; rowIndex < data.length; rowIndex++) {
+		const row = data[rowIndex];
 		const rowValues = keys.map((key) => row[key]);
 		values.push(...rowValues);
-		const placeholders = rowValues.map((_, i) => `$${i * keys.length + i + 1}`).join(', ');
+		const placeholders = rowValues.map((_, i) => `$${rowIndex * keys.length + i + 1}`).join(', ');
 		valuePlaceholders.push(`(${placeholders})`);
 	}
 
