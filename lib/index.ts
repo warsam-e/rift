@@ -1,5 +1,6 @@
 import pg, { type PoolClient } from 'pg';
-import { RiftError, type RiftConfig, type RiftObjectAny } from './types';
+import { type RiftConfig, RiftError, type RiftObjectAny } from './types.ts';
+
 declare module 'pg' {
 	interface ClientBase {
 		[Symbol.dispose](): void;
@@ -57,14 +58,21 @@ export async function query<T extends RiftObjectAny, V = unknown>(
 	try {
 		res = await conn.query<T, typeof values>(query, values);
 	} catch (e) {
-		console.error(e);
-		throw new RiftError(
-			`${e instanceof Error ? e.message : 'unknown error'}. ${
-				'position' in (e as Record<string, unknown>)
-					? `Error at position ${(e as Record<string, unknown>).position}`
-					: ''
-			}`,
-		);
+		// console.error(e);
+		if (e instanceof pg.DatabaseError)
+			throw new RiftError(
+				[
+					`Database Error: ${e.message}`,
+					'',
+					`Code: ${e.code ?? 'N/A'}`,
+					`Detail: ${e.detail ?? 'N/A'}`,
+					`Hint: ${e.hint ?? 'N/A'}`,
+					`Position: ${e.position ?? 'N/A'}`,
+					`Query: ${query}`,
+					`Values: ${JSON.stringify(values)}`,
+				].join('\n'),
+			);
+		throw new RiftError(`Query failed: ${e instanceof Error ? e.message : 'unknown error'}`);
 	}
 	return res.rows;
 }
@@ -114,8 +122,7 @@ export async function insert<T extends RiftObjectAny, V extends RiftObjectAny>(
     RETURNING *;
   `;
 
-	const res = await query<V>(conn, queryText, values);
-	return res;
+	return query(conn, queryText, values);
 }
 
 /**
@@ -156,7 +163,7 @@ export async function update<
 		[...values, ...where_values],
 	);
 
-	if (!res[0]) throw new RiftError('No result');
+	if (!res[0]) throw new RiftError('Update failed: no rows affected');
 
 	return res[0];
 }
@@ -184,4 +191,4 @@ export async function remove<T extends RiftObjectAny>(
 	await query(conn, `delete from ${table} where ${keys.map((k, i) => `${k} = $${i + 1}`).join(' and ')}`, values);
 }
 
-export * from './types';
+export * from './types.ts';
